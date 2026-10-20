@@ -3,15 +3,15 @@
     args:
       - "build"
       - "-t"
-      - "gcr.io//robin-collection:latest"
+      - "gcr.io/${PROJECT_ID}/robin-collection:latest"
       - "-f"
       - "google-chat-bot/Dockerfile"
       - "."
   - name: "gcr.io/cloud-builders/docker"
     args:
       - "push"
-      - "gcr.io//robin-collection:latest"
+      - "gcr.io/${PROJECT_ID}/robin-collection:latest"
 images:
-  - "gcr.io//robin-collection:latest"
+  - "gcr.io/${PROJECT_ID}/robin-collection:latest"
 options:
   logging: CLOUD_LOGGING_ONLY
