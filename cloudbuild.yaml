@@ -1,0 +1,22 @@
+﻿steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "gcr.io//robin-collection:latest"
+      - "-f"
+      - "google-chat-bot/Dockerfile"
+      - "."
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "gcr.io//robin-collection:latest"
+  - name: "gcr.io/cloud-builders/gke-deploy"
+    args:
+      - run
+      - "--filename=."
+      - "--image=gcr.io//robin-collection:latest"
+      - "--location=us-central1"
+      - "--cluster=robin-collection"
+images:
+  - "gcr.io//robin-collection:latest"
