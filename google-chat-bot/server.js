@@ -44,9 +44,9 @@ function stripMention(text) {
 
 function askRobin(message) {
   return new Promise((resolve, reject) => {
-    const child = spawn('bash', ['run.sh', '-q', message], {
+    const child = spawn('hermes', ['-z', `${message}`, '--cli'], {
       cwd: ROBIN_DIR,
-      windowsHide: true,
+      shell: true,
     });
 
     let stdout = '';
