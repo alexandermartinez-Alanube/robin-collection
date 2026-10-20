@@ -85,18 +85,29 @@ async function parseAndCreateTask(response) {
     const titleMatch = response.match(/\*\*Título:\*\*\s*(.+?)(?:\n|$)/);
     const queMatch = response.match(/\*\*Qué:\*\*\s*(.+?)(?:\*\*Por qué|$)/s);
     const porqueMatch = response.match(/\*\*Por qué:\*\*\s*(.+?)(?:\*\*Hecho cuando|$)/s);
+    const hechoMatch = response.match(/\*\*Hecho cuando:\*\*\s*(.+?)(?:\*\*Responsable|$)/s);
+    const responsableMatch = response.match(/\*\*Responsable:\*\*\s*(.+?)(?:\s·|$)/);
     const fechaMatch = response.match(/\*\*Fecha límite:\*\*\s*(\d{4}-\d{2}-\d{2})?/);
+    const labelMatch = response.match(/\*\*Label:\*\*\s*(🔧 Operativo|🚀 Estratégico)?/);
     const priorMatch = response.match(/\*\*Prioridad:\*\*\s*(Alta|Media|Baja|Urgente)?/);
 
     if (!titleMatch || !queMatch) return response;
 
     const title = titleMatch[1].trim();
-    const description = `${queMatch[1].trim()}\n\n${porqueMatch ? porqueMatch[1].trim() : ''}`.trim();
+    const description = [
+      `**Qué:** ${queMatch[1].trim()}`,
+      `**Por qué:** ${porqueMatch ? porqueMatch[1].trim() : ''}`,
+      `**Hecho cuando:** ${hechoMatch ? hechoMatch[1].trim() : ''}`
+    ].filter(s => s.length > 20).join('\n\n');
+
     const dueDate = fechaMatch ? fechaMatch[1] : null;
     const priority = priorMatch ? priorMatch[1] : 'Media';
+    const label = labelMatch ? labelMatch[1] : '🚀 Estratégico';
 
+    console.log(`Creando tarea en Linear: "${title}"`);
     const task = await createLinearTask(title, description, priority, dueDate);
-    return `${response}\n\n✅ Tarea creada en Linear: ${task.url}`;
+
+    return `${response}\n\n✅ **Tarea creada en Linear:** ${task.identifier} · [${task.title}](${task.url})`;
   } catch (err) {
     console.error('Error creando tarea en Linear:', err.message);
     return `${response}\n\n⚠️ No se pudo crear la tarea en Linear: ${err.message}`;

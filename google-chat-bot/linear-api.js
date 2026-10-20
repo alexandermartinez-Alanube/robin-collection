@@ -1,23 +1,30 @@
 const https = require('https');
 
 const LINEAR_API_KEY = process.env.LINEAR_API_KEY;
-const LINEAR_TEAM_ID = process.env.LINEAR_TEAM_ID;
+const COLLPRO_TEAM_ID = '8f22451f-f606-401d-aa3f-e9314267ab8f';
+const TODO_STATE_ID = 'a95e908b-7e8f-4cd4-a8f7-8821613787d9';
 
-async function createLinearTask(title, description, priority = 'Media', dueDate = null) {
-  if (!LINEAR_API_KEY || !LINEAR_TEAM_ID) {
-    throw new Error('Falta LINEAR_API_KEY o LINEAR_TEAM_ID');
+async function createLinearTask(title, description, priority = 'Media', dueDate = null, assigneeId = null) {
+  if (!LINEAR_API_KEY) {
+    throw new Error('Falta LINEAR_API_KEY en variables de entorno');
   }
 
-  const escapedTitle = title.replace(/"/g, '\\"');
+  const escapedTitle = title.replace(/"/g, '\\"').replace(/\n/g, ' ');
   const escapedDesc = description.replace(/"/g, '\\"');
+
+  const priorityNum = getPriorityNum(priority);
+  const dueDateStr = dueDate ? `dueDate: "${dueDate}"` : '';
+  const assigneeStr = assigneeId ? `assigneeId: "${assigneeId}"` : '';
 
   const query = `mutation {
     issueCreate(input: {
-      teamId: "${LINEAR_TEAM_ID}"
+      teamId: "${COLLPRO_TEAM_ID}"
+      stateId: "${TODO_STATE_ID}"
       title: "${escapedTitle}"
       description: "${escapedDesc}"
-      priority: ${getPriorityNum(priority)}
-      ${dueDate ? `dueDate: "${dueDate}"` : ''}
+      priority: ${priorityNum}
+      ${dueDateStr}
+      ${assigneeStr}
     }) {
       success
       issue {
@@ -50,8 +57,10 @@ async function createLinearTask(title, description, priority = 'Media', dueDate 
           const result = JSON.parse(data);
           if (result.errors) {
             reject(new Error(result.errors[0].message));
-          } else {
+          } else if (result.data && result.data.issueCreate && result.data.issueCreate.issue) {
             resolve(result.data.issueCreate.issue);
+          } else {
+            reject(new Error('Respuesta inesperada de Linear API'));
           }
         } catch (err) {
           reject(err);
