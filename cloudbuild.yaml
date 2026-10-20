@@ -11,12 +11,7 @@
     args:
       - "push"
       - "gcr.io//robin-collection:latest"
-  - name: "gcr.io/cloud-builders/gke-deploy"
-    args:
-      - run
-      - "--filename=."
-      - "--image=gcr.io//robin-collection:latest"
-      - "--location=us-central1"
-      - "--cluster=robin-collection"
 images:
   - "gcr.io//robin-collection:latest"
+options:
+  logging: CLOUD_LOGGING_ONLY
