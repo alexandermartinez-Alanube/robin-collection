@@ -2,5 +2,6 @@
 WORKDIR /app
 COPY . .
 RUN npm install
+RUN chmod +x startup.sh
 EXPOSE 8080
-CMD ["npm", "run", "start:http"]
+CMD ["./startup.sh"]
