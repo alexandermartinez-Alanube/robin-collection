@@ -8,6 +8,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const express = require('express');
 const { OAuth2Client } = require('google-auth-library');
+const { createLinearTask } = require('./linear-api');
 
 const PORT = process.env.PORT || 8080;
 const PROJECT_NUMBER = process.env.GCHAT_PROJECT_NUMBER; // audiencia esperada del JWT de Chat
@@ -75,6 +76,33 @@ function askRobin(message) {
   });
 }
 
+async function parseAndCreateTask(response) {
+  if (!response.includes('**Qué:**') || !response.includes('**Por qué:**')) {
+    return response;
+  }
+
+  try {
+    const titleMatch = response.match(/\*\*Título:\*\*\s*(.+?)(?:\n|$)/);
+    const queMatch = response.match(/\*\*Qué:\*\*\s*(.+?)(?:\*\*Por qué|$)/s);
+    const porqueMatch = response.match(/\*\*Por qué:\*\*\s*(.+?)(?:\*\*Hecho cuando|$)/s);
+    const fechaMatch = response.match(/\*\*Fecha límite:\*\*\s*(\d{4}-\d{2}-\d{2})?/);
+    const priorMatch = response.match(/\*\*Prioridad:\*\*\s*(Alta|Media|Baja|Urgente)?/);
+
+    if (!titleMatch || !queMatch) return response;
+
+    const title = titleMatch[1].trim();
+    const description = `${queMatch[1].trim()}\n\n${porqueMatch ? porqueMatch[1].trim() : ''}`.trim();
+    const dueDate = fechaMatch ? fechaMatch[1] : null;
+    const priority = priorMatch ? priorMatch[1] : 'Media';
+
+    const task = await createLinearTask(title, description, priority, dueDate);
+    return `${response}\n\n✅ Tarea creada en Linear: ${task.url}`;
+  } catch (err) {
+    console.error('Error creando tarea en Linear:', err.message);
+    return `${response}\n\n⚠️ No se pudo crear la tarea en Linear: ${err.message}`;
+  }
+}
+
 const app = express();
 app.use(express.json());
 
@@ -109,7 +137,8 @@ app.post('/webhook', async (req, res) => {
     }
 
     const answer = await askRobin(question);
-    return res.json({ text: answer || 'Robin no devolvió respuesta.' });
+    const finalAnswer = await parseAndCreateTask(answer);
+    return res.json({ text: finalAnswer || 'Robin no devolvió respuesta.' });
   } catch (err) {
     console.error('Error procesando el webhook:', err.message);
     if (err.message === 'timeout') {
