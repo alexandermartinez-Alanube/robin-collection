@@ -1,11 +1,12 @@
 ﻿steps:
   - name: "gcr.io/cloud-builders/docker"
+    dir: "google-chat-bot"
     args:
       - "build"
       - "-t"
       - "gcr.io/${PROJECT_ID}/robin-collection:latest"
       - "-f"
-      - "google-chat-bot/Dockerfile"
+      - "Dockerfile"
       - "."
   - name: "gcr.io/cloud-builders/docker"
     args:
