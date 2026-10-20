@@ -1,13 +1,12 @@
 ﻿steps:
   - name: 'gcr.io/k8s-skaffold/pack'
+    dir: 'google-chat-bot'
     args:
       - build
       - '-t'
       - 'gcr.io//robin-webhook'
       - '-B'
       - 'gcr.io/buildpacks/builder:v1'
-      - 'google-chat-bot'
+      - '.'
 images:
   - 'gcr.io//robin-webhook'
-options:
-  machineType: 'N1_HIGHCPU_8'
