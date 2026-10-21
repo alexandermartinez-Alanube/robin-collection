@@ -113,13 +113,20 @@ async function parseAndCreateTask(response) {
 }
 
 async function replyToSpace(spaceName, threadName, text) {
-  await chat.spaces.messages.create({
-    parent: spaceName,
-    requestBody: {
-      text,
-      ...(threadName ? { thread: { name: threadName } } : {}),
-    },
-  });
+  try {
+    console.log(`[replyToSpace] Enviando respuesta a ${spaceName}${threadName ? ` (thread: ${threadName})` : ''}`);
+    const response = await chat.spaces.messages.create({
+      parent: spaceName,
+      requestBody: {
+        text,
+        ...(threadName ? { thread: { name: threadName } } : {}),
+      },
+    });
+    console.log(`[replyToSpace] ✓ Respuesta enviada exitosamente:`, response.data.name);
+  } catch (err) {
+    console.error(`[replyToSpace] ✗ Error enviando respuesta:`, err.message);
+    console.error(`[replyToSpace] Detalles:`, err.response?.data || err);
+  }
 }
 
 subscription.on('message', async (message) => {
