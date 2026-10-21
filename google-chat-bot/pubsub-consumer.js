@@ -168,11 +168,15 @@ subscription.on('message', async (message) => {
       return;
     }
 
+    console.log(`[DEBUG] Llamando a askRobin con pregunta: "${question}"`);
     const answer = await askRobin(question);
+    console.log(`[DEBUG] Respuesta de Hermes recibida (${answer.length} chars)`);
     const finalAnswer = await parseAndCreateTask(answer);
+    console.log(`[DEBUG] Respuesta procesada, enviando a ${spaceName}...`);
     await replyToSpace(spaceName, threadName, finalAnswer || 'Robin no devolvió respuesta.');
   } catch (err) {
-    console.error('Error procesando evento de Chat:', err.message);
+    console.error('[ERROR] Error procesando evento de Chat:', err.message);
+    console.error('[ERROR] Stack trace:', err.stack);
   }
 });
 
